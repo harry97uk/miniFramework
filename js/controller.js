@@ -12,8 +12,8 @@ export class TodoController {
     this.model.addTodo(todoText);
   }
 
-  toggleTodoCompletion(todoId) {
-    this.model.toggleTodoCompletion(todoId);
+  toggleTodoCompletion(todoId, all = -1) {
+    this.model.toggleTodoCompletion(todoId, all);
   }
 
   getTodos() {

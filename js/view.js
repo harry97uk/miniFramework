@@ -28,7 +28,7 @@ export class TodoView {
     todos.forEach((todo) => {
       if (!listContains(todo.id)) {
         const listItem = createListItem(todo);
-        NestElements(this.todoList, listItem);
+        NestElements(this.todoList, listItem, todos.length);
       } else {
         updateListItem(this.newVDom, todo);
       }
@@ -48,7 +48,6 @@ export class TodoView {
   }
 
   handleToggleTodo(event) {
-    const input = document.querySelector("input");
     if (event.target.tagName === "INPUT") {
       const todoId = parseInt(
         event.target.parentElement.parentElement.getAttribute("data-id")
@@ -57,10 +56,33 @@ export class TodoView {
       this.render();
     }
   }
+
+  handleToggleAllTodo() {
+    const list = document.querySelector(".todo-list");
+    const listItems = list.querySelectorAll("li");
+
+    let on = false;
+
+    for (const item of listItems) {
+      if (item.className === "") {
+        on = true;
+        break;
+      }
+    }
+
+    listItems.forEach((item) => {
+      const todoId = parseInt(item.getAttribute("data-id"));
+      this.controller.toggleTodoCompletion(todoId, on ? 1 : 0);
+      const checkbox = item.querySelector("input");
+      checkbox.checked = on;
+    });
+    this.render();
+  }
 }
 
 const addToDoEventHandling = (view) => {
   const toDoInput = document.querySelector(".new-todo");
+  const toggleAllButton = document.querySelector("#toggle-all");
 
   const enterkey = (e) => {
     if (e.key === "Enter") {
@@ -75,18 +97,23 @@ const addToDoEventHandling = (view) => {
     const inputRect = toDoInput.getBoundingClientRect();
 
     if (
-      x >= inputRect.left &&
-      x <= inputRect.right &&
-      y >= inputRect.top &&
-      y <= inputRect.bottom
+      x < inputRect.left ||
+      x > inputRect.right ||
+      y < inputRect.top ||
+      y > inputRect.bottom
     ) {
       view.handleAddTodo(toDoInput.value);
       toDoInput.value = "";
     }
   };
 
+  const toggleAll = (e) => {
+    view.handleToggleAllTodo();
+  };
+
   CreateEvent(toDoInput, "keydown", enterkey);
-  CreateEvent(toDoInput, "click", clickAdd);
+  CreateEvent(document.documentElement, "click", clickAdd);
+  CreateEvent(toggleAllButton, "click", toggleAll);
 };
 
 const createListItem = (todo) => {
