@@ -1,30 +1,10 @@
-import CreateElement from "./createElement.js";
-import Mount from "./mount.js";
-import Render from "./render.js";
-import diff from "./diff.js";
+import CreateElement from "../framework/createElement.js";
+import Mount from "../framework/mount.js";
+import Render from "../framework/render.js";
+import { TodoController } from "./controller.js";
 
-const createVDom = (count) => {
-  return CreateElement("div", {
-    attrs: {
-      id: "app",
-    },
-    children: [
-      CreateElement("h1", {
-        attrs: { id: "title" },
-        children: ["Title"],
-      }),
-    ],
-  });
-};
-
-let vDom = createVDom();
-const $app = Render(vDom);
+const $app = Render(CreateElement("section", { attrs: { class: "todoapp" } }));
 
 let $rootEl = Mount($app, document.querySelector(".todoapp"));
 
-setInterval(() => {
-  const newVDom = createVDom();
-  const patch = diff(vDom, newVDom);
-  patch($rootEl);
-  vDom = newVDom;
-}, 1000);
+const todoApp = new TodoController($rootEl);

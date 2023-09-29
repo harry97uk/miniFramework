@@ -1,13 +1,17 @@
 const renderElem = ({ tagName, attrs, children }) => {
   const $el = document.createElement(tagName);
 
-  for (const [k, v] of Object.entries(attrs)) {
-    $el.setAttribute(k, v);
+  if (attrs) {
+    for (const [k, v] of Object.entries(attrs)) {
+      $el.setAttribute(k, v);
+    }
   }
 
-  for (const child of children) {
-    const $child = Render(child);
-    $el.appendChild($child);
+  if (children) {
+    for (const child of children) {
+      const $child = Render(child);
+      $el.appendChild($child);
+    }
   }
 
   return $el;

@@ -74,7 +74,7 @@ const diff = (vOldNode, vNewNode) => {
         return $newNode;
       };
     } else {
-      return ($node) => undefined;
+      return ($node) => $node;
     }
   }
 
