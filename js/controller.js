@@ -14,7 +14,6 @@ export class TodoController {
 
   toggleTodoCompletion(todoId) {
     this.model.toggleTodoCompletion(todoId);
-    this.view.render();
   }
 
   getTodos() {

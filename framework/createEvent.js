@@ -6,6 +6,12 @@ const CreateEvent = (elem, type, f) => {
     case "keydown":
       elem.onkeydown = f;
       break;
+    case "keyup":
+      elem.onkeyup = f;
+      break;
+    case "change":
+      elem.onchange = f;
+      break;
     default:
       break;
   }

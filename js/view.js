@@ -4,6 +4,7 @@ import ToDoMainView from "../views/mainView.js";
 import diff from "../framework/diff.js";
 import AddAttributesToElem from "../framework/addAttributes.js";
 import CreateEvent from "../framework/createEvent.js";
+import { listContains, findElementInVDom } from "./helpers.js";
 
 export class TodoView {
   constructor(controller, root) {
@@ -11,26 +12,31 @@ export class TodoView {
     this.controller = controller;
     this.vDom = CreateElement("section", { attrs: { class: "todoapp" } });
     this.newVDom = ToDoMainView();
-    //this.inputField = getToDoInputElement(this.newVDom);
-    //    this.todoList.addEventListener("click", this.handleToggleTodo.bind(this));
     this.render();
     addToDoEventHandling(this);
   }
 
   render() {
-    this.todoList = getToDoListElement(this.newVDom);
-    this.inputField = getToDoInputElement(this.newVDom);
+    this.todoList = findElementInVDom(this.newVDom, "ul", {
+      class: "todo-list",
+    });
+    this.inputField = findElementInVDom(this.newVDom, "input", {
+      class: "new-todo",
+    });
     const todos = this.controller.getTodos();
 
     todos.forEach((todo) => {
       if (!listContains(todo.id)) {
         const listItem = createListItem(todo);
         NestElements(this.todoList, listItem);
+      } else {
+        updateListItem(this.newVDom, todo);
       }
     });
 
     const patch = diff(this.vDom, this.newVDom);
     patch(this.root);
+    addListItemEvents(this);
     this.vDom = JSON.parse(JSON.stringify(this.newVDom));
   }
 
@@ -42,68 +48,45 @@ export class TodoView {
   }
 
   handleToggleTodo(event) {
-    if (event.target.tagName === "LI") {
-      const todoId = parseInt(event.target.getAttribute("data-id"));
+    const input = document.querySelector("input");
+    if (event.target.tagName === "INPUT") {
+      const todoId = parseInt(
+        event.target.parentElement.parentElement.getAttribute("data-id")
+      );
       this.controller.toggleTodoCompletion(todoId);
       this.render();
     }
   }
 }
 
-export const handleEvent = (event) => {
-  console.log(event);
-};
-
-const getToDoListElement = (vDom) => {
-  const mainSection = vDom.children.find((child) => {
-    return child.tagName === "section" && child.attrs.class === "main";
-  });
-
-  const ulTodoList = mainSection.children.find((child) => {
-    return child.tagName === "ul" && child.attrs.class === "todo-list";
-  });
-
-  return ulTodoList;
-};
-
-const getToDoInputElement = (vDom) => {
-  const header = vDom.children.find((child) => {
-    return child.tagName === "header" && child.attrs.class === "header";
-  });
-
-  const inputTodo = header.children.find((child) => {
-    return child.tagName === "input" && child.attrs.class === "new-todo";
-  });
-
-  return inputTodo;
-};
-
 const addToDoEventHandling = (view) => {
   const toDoInput = document.querySelector(".new-todo");
+
   const enterkey = (e) => {
     if (e.key === "Enter") {
       view.handleAddTodo(toDoInput.value);
       toDoInput.value = "";
     }
   };
-  CreateEvent(toDoInput, "keydown", enterkey);
-  CreateEvent(toDoInput, "click", enterkey);
-};
 
-const listContains = (id) => {
-  const toDoList = document.querySelector(".todo-list");
+  const clickAdd = (e) => {
+    const x = e.clientX;
+    const y = e.clientY;
+    const inputRect = toDoInput.getBoundingClientRect();
 
-  const listItems = toDoList.querySelectorAll("li");
-
-  let found = false;
-
-  listItems.forEach((item) => {
-    if (item.dataset.id === String(id)) {
-      found = true;
+    if (
+      x >= inputRect.left &&
+      x <= inputRect.right &&
+      y >= inputRect.top &&
+      y <= inputRect.bottom
+    ) {
+      view.handleAddTodo(toDoInput.value);
+      toDoInput.value = "";
     }
-  });
+  };
 
-  return found;
+  CreateEvent(toDoInput, "keydown", enterkey);
+  CreateEvent(toDoInput, "click", clickAdd);
 };
 
 const createListItem = (todo) => {
@@ -129,4 +112,31 @@ const createListItem = (todo) => {
   });
 
   return listItem;
+};
+
+const addListItemEvents = (view) => {
+  const list = document.querySelector(".todo-list");
+  const listItems = list.querySelectorAll("li");
+
+  const toggleInputHandler = (e) => {
+    view.handleToggleTodo(e);
+  };
+
+  listItems.forEach((item) => {
+    CreateEvent(item, "change", toggleInputHandler);
+  });
+};
+
+const updateListItem = (vDom, todo) => {
+  const listItem = findElementInVDom(vDom, "li", { "data-id": todo.id });
+
+  if (listItem && listItem.attrs.class === "completed" && !todo.completed) {
+    listItem.attrs.class = "";
+  } else if (
+    listItem &&
+    listItem.attrs.class !== "completed" &&
+    todo.completed
+  ) {
+    listItem.attrs.class = "completed";
+  }
 };
