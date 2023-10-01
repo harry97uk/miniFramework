@@ -2,7 +2,7 @@ import Render from "./render.js";
 
 const zip = (xs, ys) => {
   const zipped = [];
-  for (let i = 0; i < Math.min(xs.length, ys.length); i++) {
+  for (let i = 0; i < xs.length; i++) {
     zipped.push([xs[i], ys[i]]);
   }
   return zipped;
@@ -62,8 +62,9 @@ const diffChildren = (oldChildren, newChildren) => {
 
 const diff = (vOldNode, vNewNode) => {
   if (typeof vNewNode === "undefined") {
-    $node.remove();
-    return undefined;
+    return ($node) => {
+      $node.remove();
+    };
   }
 
   if (typeof vOldNode === "string" || typeof vNewNode === "string") {

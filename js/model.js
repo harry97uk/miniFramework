@@ -7,6 +7,13 @@ export class TodoModel {
     this.todos.push({ id: Date.now(), text: todoText, completed: false });
   }
 
+  removeTodo(id) {
+    this.todos.splice(
+      this.todos.findIndex((todo) => todo.id == id),
+      1
+    );
+  }
+
   toggleTodoCompletion(todoId, all = -1) {
     const todo = this.todos.find((item) => item.id === todoId);
     if (todo && all == -1) {

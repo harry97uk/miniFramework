@@ -47,6 +47,27 @@ export class TodoView {
     }
   }
 
+  handleRemoveTodo(event) {
+    if (event.target.tagName === "BUTTON") {
+      const todoId = parseInt(
+        event.target.parentElement.parentElement.getAttribute("data-id")
+      );
+      const vDomList = findElementInVDom(this.newVDom, "ul", {
+        class: "todo-list",
+      });
+      if (vDomList.children) {
+        vDomList.children.splice(
+          vDomList.children.findIndex(
+            (child) => child.attrs["data-id"] == todoId
+          ),
+          1
+        );
+      }
+      this.controller.removeTodo(todoId);
+      this.render();
+    }
+  }
+
   handleToggleTodo(event) {
     if (event.target.tagName === "INPUT") {
       const todoId = parseInt(
@@ -58,24 +79,7 @@ export class TodoView {
   }
 
   handleToggleAllTodo() {
-    const list = document.querySelector(".todo-list");
-    const listItems = list.querySelectorAll("li");
-
-    let on = false;
-
-    for (const item of listItems) {
-      if (item.className === "") {
-        on = true;
-        break;
-      }
-    }
-
-    listItems.forEach((item) => {
-      const todoId = parseInt(item.getAttribute("data-id"));
-      this.controller.toggleTodoCompletion(todoId, on ? 1 : 0);
-      const checkbox = item.querySelector("input");
-      checkbox.checked = on;
-    });
+    this.controller.toggleAllTodosCompletion();
     this.render();
   }
 }
@@ -149,8 +153,15 @@ const addListItemEvents = (view) => {
     view.handleToggleTodo(e);
   };
 
+  const destoryHandler = (e) => {
+    view.handleRemoveTodo(e);
+  };
+
   listItems.forEach((item) => {
-    CreateEvent(item, "change", toggleInputHandler);
+    const toggleInput = item.querySelector("input");
+    const destroyButton = item.querySelector("button");
+    CreateEvent(toggleInput, "change", toggleInputHandler);
+    CreateEvent(destroyButton, "click", destoryHandler);
   });
 };
 
