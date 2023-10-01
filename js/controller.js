@@ -26,6 +26,14 @@ export class TodoController {
     this.model.removeTodo(id);
   }
 
+  toggleTodoEditing(id) {
+    this.model.toggleTodoEditing(id);
+  }
+
+  editTodoText(id, text) {
+    this.model.editTodoText(id, text);
+  }
+
   toggleTodoCompletion(todoId, all = -1) {
     this.model.toggleTodoCompletion(todoId, all);
   }

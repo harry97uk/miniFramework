@@ -4,7 +4,12 @@ export class TodoModel {
   }
 
   addTodo(todoText) {
-    this.todos.push({ id: Date.now(), text: todoText, completed: false });
+    this.todos.push({
+      id: Date.now(),
+      text: todoText,
+      completed: false,
+      editing: false,
+    });
   }
 
   removeTodo(id) {
@@ -12,6 +17,16 @@ export class TodoModel {
       this.todos.findIndex((todo) => todo.id == id),
       1
     );
+  }
+
+  toggleTodoEditing(id) {
+    const todo = this.todos.find((item) => item.id === id);
+    todo.editing = !todo.editing;
+  }
+
+  editTodoText(id, text) {
+    const todo = this.todos.find((item) => item.id === id);
+    todo.text = text;
   }
 
   toggleTodoCompletion(todoId, all = -1) {

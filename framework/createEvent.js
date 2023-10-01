@@ -12,6 +12,9 @@ const CreateEvent = (elem, type, f) => {
     case "change":
       elem.onchange = f;
       break;
+    case "dblclick":
+      elem.ondblclick = f;
+      break;
     default:
       break;
   }

@@ -1,13 +1,18 @@
-export const findElementInVDom = (vDom, tagName, attrs) => {
+export const findElementInVDom = (vDom, tagName, attrs = {}) => {
+  let counter = -1;
   if (vDom.tagName === tagName) {
     if (attrs) {
+      counter = Object.entries(attrs).length;
       for (const [key, value] of Object.entries(attrs)) {
         if (vDom.attrs[key] !== value) {
-          return null;
+          break;
         }
+        counter--;
       }
     }
-    return vDom;
+    if (counter == 0) {
+      return vDom;
+    }
   }
 
   if (vDom.children) {
@@ -24,6 +29,8 @@ export const findElementInVDom = (vDom, tagName, attrs) => {
 
 export const listContains = (id) => {
   const toDoList = document.querySelector(".todo-list");
+
+  if (!toDoList) return;
 
   const listItems = toDoList.querySelectorAll("li");
 
