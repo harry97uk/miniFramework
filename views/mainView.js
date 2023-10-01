@@ -75,7 +75,7 @@ const createFooter = () => {
   });
 
   const clearCompletedButton = CreateElement("button", {
-    attrs: { class: "clear-completed" },
+    attrs: { class: "clear-completed", style: "display: none" },
     children: ["Clear Completed"],
   });
 

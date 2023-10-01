@@ -23,7 +23,16 @@ export class TodoView {
     this.inputField = findElementInVDom(this.newVDom, "input", {
       class: "new-todo",
     });
+    this.clearCompletedButton = findElementInVDom(this.newVDom, "button", {
+      class: "clear-completed",
+    });
     const todos = this.controller.getTodos();
+
+    if (todos.some((todo) => todo.completed)) {
+      this.clearCompletedButton.attrs.style = "display: block";
+    } else {
+      this.clearCompletedButton.attrs.style = "display: none";
+    }
 
     todos.forEach((todo) => {
       if (!listContains(todo.id)) {
@@ -52,17 +61,6 @@ export class TodoView {
       const todoId = parseInt(
         event.target.parentElement.parentElement.getAttribute("data-id")
       );
-      const vDomList = findElementInVDom(this.newVDom, "ul", {
-        class: "todo-list",
-      });
-      if (vDomList.children) {
-        vDomList.children.splice(
-          vDomList.children.findIndex(
-            (child) => child.attrs["data-id"] == todoId
-          ),
-          1
-        );
-      }
       this.controller.removeTodo(todoId);
       this.render();
     }
@@ -82,11 +80,17 @@ export class TodoView {
     this.controller.toggleAllTodosCompletion();
     this.render();
   }
+
+  handleClearCompleted() {
+    this.controller.clearCompletedTodos();
+    this.render();
+  }
 }
 
 const addToDoEventHandling = (view) => {
   const toDoInput = document.querySelector(".new-todo");
   const toggleAllButton = document.querySelector("#toggle-all");
+  const clearCompletedButton = document.querySelector(".clear-completed");
 
   const enterkey = (e) => {
     if (e.key === "Enter") {
@@ -115,9 +119,14 @@ const addToDoEventHandling = (view) => {
     view.handleToggleAllTodo();
   };
 
+  const clearCompleted = (e) => {
+    view.handleClearCompleted();
+  };
+
   CreateEvent(toDoInput, "keydown", enterkey);
   CreateEvent(document.documentElement, "click", clickAdd);
   CreateEvent(toggleAllButton, "click", toggleAll);
+  CreateEvent(clearCompletedButton, "click", clearCompleted);
 };
 
 const createListItem = (todo) => {
