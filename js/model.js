@@ -6,6 +6,7 @@ export class TodoModel {
   addTodo(todoText) {
     this.todos.push({
       id: Date.now(),
+      order: this.todos.length,
       text: todoText,
       completed: false,
       editing: false,

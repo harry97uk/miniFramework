@@ -42,3 +42,12 @@ export const listContains = (id) => {
 
   return false;
 };
+
+export function containsObject(arr, obj, prop) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i][prop] === obj[prop]) {
+      return true;
+    }
+  }
+  return false;
+}

@@ -15,6 +15,11 @@ const CreateEvent = (elem, type, f) => {
     case "dblclick":
       elem.ondblclick = f;
       break;
+    case "popstate":
+      if (elem === window) {
+        elem.onpopstate = f;
+      }
+      break;
     default:
       break;
   }

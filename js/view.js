@@ -1,11 +1,15 @@
 import CreateElement from "../framework/createElement.js";
 import NestElements from "../framework/nestElements.js";
-import ToDoMainView from "../views/mainView.js";
 import diff from "../framework/diff.js";
 import CreateEvent from "../framework/createEvent.js";
 import RemoveChildElement from "../framework/removeElement.js";
-import AddAttributesToElem from "../framework/addAttributes.js";
-import { listContains, findElementInVDom } from "./helpers.js";
+import { listContains, findElementInVDom, containsObject } from "./helpers.js";
+import {
+  createFooter,
+  createMainSection,
+  ToDoMainView,
+  createListItem,
+} from "./template.js";
 
 export class TodoView {
   constructor(controller, root) {
@@ -23,6 +27,7 @@ export class TodoView {
     const todos = this.controller.getTodos();
     if (todos.length > 0) {
       addListItemEvents(this);
+      assertCheckedStatus(todos);
     }
     this.vDom = JSON.parse(JSON.stringify(this.newVDom));
   }
@@ -32,14 +37,41 @@ export class TodoView {
     updateVisibleSections(todos, this);
     getVDomSections(this);
 
+    const filteredTodos = todos.filter((todo) => {
+      if (window.location.hash === "#/active") {
+        return !todo.completed;
+      } else if (window.location.hash === "#/completed") {
+        return todo.completed;
+      }
+      return true;
+    });
+
     todos.forEach((todo) => {
-      if (!listContains(todo.id)) {
-        const listItem = createListItem(todo);
-        NestElements(this.todoList, listItem, todos.length);
+      if (containsObject(filteredTodos, todo, "id")) {
+        if (!listContains(todo.id)) {
+          const listItem = createListItem(todo);
+          NestElements(this.todoList, listItem, todo.order);
+        } else {
+          updateListItem(this.newVDom, todo);
+        }
       } else {
-        updateListItem(this.newVDom, todo);
+        if (listContains(todo.id)) {
+          const listItem = findElementInVDom(this.todoList, "li", {
+            "data-id": todo.id,
+          });
+          RemoveChildElement(this.todoList, listItem);
+        }
       }
     });
+
+    const todoCount = todos.filter((todo) => !todo.completed).length;
+    const todoCountElem = CreateElement("strong", {
+      children: [String(todoCount)],
+    });
+    this.todoCount.children = [
+      todoCountElem,
+      todoCount == 1 ? " item left" : " items left",
+    ];
   }
 
   handleAddTodo(text) {
@@ -124,6 +156,9 @@ const getVDomSections = (view) => {
   view.footerSection = findElementInVDom(view.newVDom, "footer", {
     class: "footer",
   });
+  view.todoCount = findElementInVDom(view.newVDom, "span", {
+    class: "todo-count",
+  });
 };
 
 const addNewTodoEventHandling = (view) => {
@@ -170,31 +205,10 @@ const addOtherTodoEventHandling = (view) => {
 
   CreateEvent(toggleAllButton, "click", toggleAll);
   CreateEvent(clearCompletedButton, "click", clearCompleted);
-};
-
-const createListItem = (todo) => {
-  const toggleInput = CreateElement("input", {
-    attrs: { class: "toggle", type: "checkbox" },
+  CreateEvent(window, "popstate", () => {
+    view.updateVDom();
+    view.render();
   });
-  const itemLabel = CreateElement("label", { children: [todo.text] });
-  const destroyButton = CreateElement("button", {
-    attrs: { class: "destroy" },
-  });
-
-  const viewDiv = CreateElement("div", {
-    attrs: { class: "view" },
-    children: [toggleInput, itemLabel, destroyButton],
-  });
-
-  const listItem = CreateElement("li", {
-    attrs: {
-      class: todo.completed ? "completed" : "",
-      "data-id": todo.id,
-    },
-    children: [viewDiv],
-  });
-
-  return listItem;
 };
 
 const addListItemEvents = (view) => {
@@ -313,68 +327,14 @@ const updateVisibleSections = (todos, view) => {
   }
 };
 
-const createMainSection = () => {
-  const toggleAll = CreateElement("input", { children: [] });
-  const toggleAllAttrs = {
-    id: "toggle-all",
-    class: "toggle-all",
-    type: "checkbox",
-  };
-  AddAttributesToElem(toggleAll, toggleAllAttrs);
+const assertCheckedStatus = (todos) => {
+  const list = document.querySelector(".todo-list");
+  const listItems = list.querySelectorAll("li");
 
-  const toggleLabel = CreateElement("label", {
-    attrs: { for: "toggle-all" },
-    children: ["Mark all as complete"],
+  listItems.forEach((item) => {
+    const itemId = parseInt(item.getAttribute("data-id"));
+    const index = todos.findIndex((todo) => todo.id === itemId);
+    const checkbox = item.querySelector("input.toggle");
+    checkbox.checked = todos[index].completed;
   });
-
-  const todoUnorderedList = CreateElement("ul", {
-    attrs: { class: "todo-list" },
-  });
-
-  const mainSection = CreateElement("section", {
-    attrs: { class: "main" },
-    children: [toggleAll, toggleLabel, todoUnorderedList],
-  });
-
-  return mainSection;
-};
-
-const createFooter = () => {
-  const todoCount = CreateElement("span", { attrs: { class: "todo-count" } });
-
-  const listItems = Array.from({ length: 3 }, () => CreateElement("li"));
-
-  const allFilter = CreateElement("a", {
-    attrs: { href: "#/", class: "selected" },
-    children: ["All"],
-  });
-  const activeFilter = CreateElement("a", {
-    attrs: { href: "#/active" },
-    children: ["Active"],
-  });
-  const completedFilter = CreateElement("a", {
-    attrs: { href: "#/completed" },
-    children: ["Completed"],
-  });
-
-  NestElements(listItems[0], allFilter);
-  NestElements(listItems[1], activeFilter);
-  NestElements(listItems[2], completedFilter);
-
-  const filtersList = CreateElement("ul", {
-    attrs: { class: "filters" },
-    children: [...listItems],
-  });
-
-  const clearCompletedButton = CreateElement("button", {
-    attrs: { class: "clear-completed", style: "display: none" },
-    children: ["Clear Completed"],
-  });
-
-  const footer = CreateElement("footer", {
-    attrs: { class: "footer" },
-    children: [todoCount, filtersList, clearCompletedButton],
-  });
-
-  return footer;
 };
