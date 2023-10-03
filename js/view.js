@@ -138,6 +138,45 @@ export class TodoView {
     this.updateVDom();
     this.render();
   }
+
+  handleChangeFilter(event) {
+    const allFilterButton = findElementInVDom(this.newVDom, "a", {
+      href: "#/",
+    });
+    const activeFilterButton = findElementInVDom(this.newVDom, "a", {
+      href: "#/active",
+    });
+    const completedFilterButton = findElementInVDom(this.newVDom, "a", {
+      href: "#/completed",
+    });
+
+    if (event.target.tagName === "A") {
+      const ref = event.target.getAttribute("href");
+      switch (ref) {
+        case "#/":
+          allFilterButton.attrs.class = "selected";
+          activeFilterButton.attrs.class = "";
+          completedFilterButton.attrs.class = "";
+          break;
+        case "#/active":
+          activeFilterButton.attrs.class = "selected";
+          allFilterButton.attrs.class = "";
+          completedFilterButton.attrs.class = "";
+          break;
+        case "#/completed":
+          completedFilterButton.attrs.class = "selected";
+          allFilterButton.attrs.class = "";
+          activeFilterButton.attrs.class = "";
+          break;
+
+        default:
+          allFilterButton.attrs.class = "selected";
+          activeFilterButton.attrs.class = "";
+          completedFilterButton.attrs.class = "";
+          break;
+      }
+    }
+  }
 }
 
 const getVDomSections = (view) => {
@@ -194,6 +233,11 @@ const addNewTodoEventHandling = (view) => {
 const addOtherTodoEventHandling = (view) => {
   const toggleAllButton = document.querySelector("#toggle-all");
   const clearCompletedButton = document.querySelector(".clear-completed");
+  const filterButtons = document.querySelectorAll("a");
+
+  const changeFilter = (e) => {
+    view.handleChangeFilter(e);
+  };
 
   const toggleAll = (e) => {
     view.handleToggleAllTodo();
@@ -205,6 +249,9 @@ const addOtherTodoEventHandling = (view) => {
 
   CreateEvent(toggleAllButton, "click", toggleAll);
   CreateEvent(clearCompletedButton, "click", clearCompleted);
+  filterButtons.forEach((button) => {
+    CreateEvent(button, "click", changeFilter);
+  });
   CreateEvent(window, "popstate", () => {
     view.updateVDom();
     view.render();
